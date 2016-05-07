@@ -1,4 +1,4 @@
-var pad, ball, bg, score, cursors, scoreText, levelText, level, health, healthText, star;
+var pad, ball, bg, score, cursors, scoreText, levelText, level, health, healthText;
 var loop = 1;
 
 
@@ -18,7 +18,6 @@ var Game = {
         score = 0;
         level = 0;
         health = 0;
-        star = 0;
         
         game.physics.startSystem(Phaser.Physics.ARCADE);
         game.physics.arcade.checkCollision.down = false;
@@ -46,12 +45,26 @@ var Game = {
         game.physics.arcade.collide(pad, ball, function(){
             score += 1;
             scoreText.text = 'Score: ' + score;
-            if (score % 5 == 0){
-                level += 1;
-                health += 1;
-                loop++;
+            if (score % 5 == 0 && loop < 4){
+                level += 1
                 levelText.text = 'Level: ' + level;
-                healthText.text = 'Health: ' + health;
+                if (level % 2 == 0 && level > 0){
+                    health += 1;
+                    healthText.text = 'Health: ' + health;
+                }
+                var a = level;
+                this.generateball(a);
+                if (level % 3 == 0){
+                    pad.scale.setTo(1.3, 1);
+                }
+            }
+            else if (score % 15 == 0 && (loop >= 4 && loop < 8)){
+                level += 1
+                levelText.text = 'Level: ' + level;
+                if (level % 2 == 0){
+                    health += 1;
+                    healthText.text = 'Health: ' + health;
+                }
                 var a = level;
                 this.generateball(a);
                 if (level % 3 == 0){
@@ -74,23 +87,26 @@ var Game = {
     generateball : function(i){
         
          for(; i < loop; i++){
-            ball[i] = game.add.sprite(40 * ((i % 5) + 5), 0, 'ball');
-            star += 1;
+            ball[i] = game.add.sprite(40 * (Math.random() * 40), 0, 'ball');
             game.physics.enable(ball[i], Phaser.Physics.ARCADE);
             ball[i].body.velocity.set(i * 3 + 90, i * -3 - 100);
             ball[i].body.collideWorldBounds = true;
             ball[i].body.bounce.set(1);
             ball[i].checkWorldBounds = true;
             ball[i].events.onOutOfBounds.add(function() {
-                star -= 1;
                 health -= 1;
                 healthText.text = 'Health: ' + health;
-                if (star <= 0 || health <= 0){
+                if (health == 0 && level > 0){
+                    loop = 1;
+                    game.state.start('Game_Over');
+                }
+                if (health == -1){
                     loop = 1;
                     game.state.start('Game_Over');
                 }
             }, this);
         }
+        loop += 1;
     },
           
 };
